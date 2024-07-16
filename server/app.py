@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python3
 from flask import Flask, request, make_response
 from flask_sqlalchemy import SQLAlchemy
@@ -22,8 +21,8 @@ api = Api(app)
 class Restaurants(Resource):
     def get(self):
         restaurants = [n.to_dict() for n in Restaurant.query.all()]
-        for hero in restaurants:
-            hero.pop('restaurant_pizzas', None)
+        for restaurant in restaurants:
+            restaurant.pop('restaurant_pizzas', None)
         return make_response(restaurants, 200)
 
 api.add_resource(Restaurants, "/restaurants")
@@ -33,8 +32,7 @@ class RestaurantByID(Resource):
         restaurant = Restaurant.query.filter_by(id=id).first()
         if restaurant is None:
             return {"error": "Restaurant not found"}, 404
-        response_dict = restaurant.to_dict()
-        return response_dict, 200
+        return restaurant.to_dict(), 200
     
     def delete(self, id):
         restaurant = Restaurant.query.filter_by(id=id).first()
@@ -48,12 +46,8 @@ api.add_resource(RestaurantByID, "/restaurants/<int:id>")
 
 class Pizzas(Resource):
     def get(self):
-        response_dict_list = [n.to_dict() for n in Pizza.query.all()]
-        response = make_response(
-            response_dict_list,
-            200,
-        )
-        return response
+        pizzas = [n.to_dict() for n in Pizza.query.all()]
+        return make_response(pizzas, 200)
     
 api.add_resource(Pizzas, "/pizzas")
 
@@ -62,11 +56,8 @@ class RestaurantPizzas(Resource):
         try:
             data = request.get_json()
             price = int(data.get('price'))
-            
-            # Add price validation here
-            if price < 1 or price > 30:
-                return {"errors": ["validation errors"]}, 400
-            
+
+            # Price validation is already handled in the model
             restaurant_pizza = RestaurantPizza(
                 pizza_id=data.get('pizza_id'),
                 restaurant_id=data.get('restaurant_id'),
@@ -74,8 +65,7 @@ class RestaurantPizzas(Resource):
             )
             db.session.add(restaurant_pizza)
             db.session.commit()
-            response_dict = restaurant_pizza.to_dict()
-            return make_response(response_dict, 201)
+            return make_response(restaurant_pizza.to_dict(), 201)
         except Exception as e:
             return {"errors": ["validation errors"]}, 400
 
